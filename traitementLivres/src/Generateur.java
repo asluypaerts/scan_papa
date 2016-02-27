@@ -25,9 +25,12 @@ public class Generateur implements ActionListener {
 	private static final String EXTENSION = ".jpg";
 	private static final String RETOUR = "\n";
 	
-	/**le format d'un fichier en entree est {nombre}{ }{chiffre sans leading zero ou rien).jpeg*/
-	Pattern pattern = Pattern.compile("(\\d{4})(\\p{Blank})??(\\d)*.jpeg");
+	/**le format d'un fichier en entree est {nombre}_{nombre).jpg*/
+	Pattern patternCarte = Pattern.compile("(\\d{4})_(\\d{3}).jpg");
 			
+	/**le format d'un livre en entree est {nombre}{ }{chiffre sans leading zero ou rien).jpeg*/
+	Pattern patternLivre = Pattern.compile("(\\d{4})(\\p{Blank})??(\\d)*.jpeg");
+	
 	/**fichier de log*/
 	BufferedWriter log = null;
 	
@@ -116,33 +119,39 @@ public class Generateur implements ActionListener {
 		    	return nom1.compareTo(nom2);
 		    } });
 		
-		int numeroInitialInt = -1;
-		int compteur = -1;
-		String numSubImage = "001";
-		
+		int compteurImage = -1;
+		int[] indexSubImage = {1, 2};
+		int compteurSubImage = indexSubImage[0];
+		int cpt = 0;
 		for(File f : listeFichiers){
-			Matcher m = pattern.matcher(f.getName());
+			Matcher m = patternCarte.matcher(f.getName());
 			log.append("Fichier initial : "+f.getName()+RETOUR);
 			if (m.matches()){
-				String numImage = m.group(1);
-				
-				//cas de la premiere image
-				if (numeroInitialInt == -1){
-					numeroInitialInt = Integer.parseInt(numImage);
-					compteur = numeroInitialInt;
+				if (compteurImage == -1){
+					//initialisation du premier numero d'image
+					String numImage = m.group(1);
+					compteurImage = Integer.parseInt(numImage);
+				}else{
+					if (cpt % 2 == 0){
+						compteurImage++;
+					}
 				}
+				compteurSubImage = indexSubImage[cpt % 2];
 				
 				//on ajoute les zeros si besoin
-				String numImageFormatted = String.format("%04d", compteur);
+				String numImageFormatted = String.format("%04d", compteurImage);
+				String numSubImageFormatted = String.format("%03d", compteurSubImage);
 				
 				//le format de sortie est nombre avec leading zero sur 4 caractères)_001.jpeg
-				String nomFichier = numImageFormatted+UNDERSCORE+numSubImage+EXTENSION;
+				String nomFichier = numImageFormatted+UNDERSCORE+numSubImageFormatted+EXTENSION;
 				String nomSortie = fenetre.getDossierOut().getCanonicalPath()+File.separator+nomFichier;
 				log.append("Copié vers : "+nomSortie+RETOUR);
 				
 				File destination = new File(nomSortie);
 				FileUtils.copyFile(f, destination, false);
-				compteur++;
+				
+				//mise à jour des compteurs
+				cpt++;
 			}else{
 				log.append("NON copié."+RETOUR);
 			}
@@ -154,7 +163,7 @@ public class Generateur implements ActionListener {
 		
 		//on parcourt tous les fichiers du dossier donné
 		for(File f : fileIn.listFiles()){
-			Matcher m = pattern.matcher(f.getName());
+			Matcher m = patternLivre.matcher(f.getName());
 			log.append("Fichier initial : "+f.getName()+RETOUR);
 			if (m.matches()){
 				String numImage = m.group(1);
