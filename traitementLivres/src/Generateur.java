@@ -120,9 +120,7 @@ public class Generateur implements ActionListener {
 		    } });
 		
 		int compteurImage = -1;
-		int[] indexSubImage = {1, 2};
-		int compteurSubImage = indexSubImage[0];
-		int cpt = 0;
+		int compteurSubImage = 1;
 		for(File f : listeFichiers){
 			Matcher m = patternCarte.matcher(f.getName());
 			log.append("Fichier initial : "+f.getName()+RETOUR);
@@ -132,11 +130,8 @@ public class Generateur implements ActionListener {
 					String numImage = m.group(1);
 					compteurImage = Integer.parseInt(numImage);
 				}else{
-					if (cpt % 2 == 0){
-						compteurImage++;
-					}
+					compteurImage++;
 				}
-				compteurSubImage = indexSubImage[cpt % 2];
 				
 				//on ajoute les zeros si besoin
 				String numImageFormatted = String.format("%04d", compteurImage);
@@ -149,9 +144,6 @@ public class Generateur implements ActionListener {
 				
 				File destination = new File(nomSortie);
 				FileUtils.copyFile(f, destination, false);
-				
-				//mise à jour des compteurs
-				cpt++;
 			}else{
 				log.append("NON copié."+RETOUR);
 			}
